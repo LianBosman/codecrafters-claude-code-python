@@ -2,6 +2,7 @@ import argparse
 import os
 import sys
 import json
+import subprocess
 
 from openai import OpenAI
 
@@ -64,6 +65,23 @@ def main():
                         },
                     },
                 },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Bash",
+                        "description": "Execute a shell command",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["command"],
+                            "properties": {
+                                "command": {
+                                    "type": "string",
+                                    "description": "The command to execute",
+                                }
+                            },
+                        },
+                    },
+                },
             ],
         )
 
@@ -86,6 +104,14 @@ def main():
                 with open(arguments["file_path"], "w") as f:
                     f.write(arguments["content"])
                 result = f"Written to {arguments['file_path']}"
+            elif tool_call.function.name == "Bash":
+                proc = subprocess.run(
+                    arguments["command"],
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                )
+                result = proc.stdout + proc.stderr
             else:
                 result = f"Unknown tool: {tool_call.function.name}"
 
