@@ -42,13 +42,34 @@ def main():
                             "required": ["file_path"],
                         },
                     },
-                }
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "name": "Write",
+                        "description": "Write content to a file",
+                        "parameters": {
+                            "type": "object",
+                            "required": ["file_path", "content"],
+                            "properties": {
+                                "file_path": {
+                                    "type": "string",
+                                    "description": "The path of the file to write to",
+                                },
+                                "content": {
+                                    "type": "string",
+                                    "description": "The content to write to the file",
+                                },
+                            },
+                        },
+                    },
+                },
             ],
         )
 
         if not chat.choices or len(chat.choices) == 0:
-
             raise RuntimeError("no choices in response")
+
         message = chat.choices[0].message
         messages.append(message)
 
@@ -61,6 +82,10 @@ def main():
             if tool_call.function.name == "Read":
                 with open(arguments["file_path"], "r") as f:
                     result = f.read()
+            elif tool_call.function.name == "Write":
+                with open(arguments["file_path"], "w") as f:
+                    f.write(arguments["content"])
+                result = f"Written to {arguments['file_path']}"
             else:
                 result = f"Unknown tool: {tool_call.function.name}"
 
